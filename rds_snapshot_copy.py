@@ -12,6 +12,7 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 
+# delete latest snapshot
 def delete_latest_snapshot(snapshot: str) -> None:
     logger.info("delete latest snapshot")
     rds.delete_db_snapshot(
