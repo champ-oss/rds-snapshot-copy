@@ -22,6 +22,7 @@ def delete_latest_snapshot(snapshot: str) -> None:
     logger.info("deleted latest snapshot complete")
 
 
+# copy snapshot
 def copy_snapshot(source_snapshot: str, target_snapshot: str, kms_key_id: str) -> None:
     logger.info("copy snapshot")
 
