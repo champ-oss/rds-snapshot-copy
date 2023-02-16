@@ -20,7 +20,7 @@ def delete_latest_snapshot(snapshot: str) -> None:
     rds.delete_db_snapshot(
         DBSnapshotIdentifier=snapshot,
     )
-    time.sleep(5)
+    time.sleep(3)
     logger.info("deleted latest snapshot complete")
 
 
@@ -29,7 +29,7 @@ def delete_cluster_latest_snapshot(latest_snapshot: str) -> None:
     rds.delete_db_cluster_snapshot(
         DBClusterSnapshotIdentifier=latest_snapshot,
     )
-    time.sleep(5)
+    time.sleep(3)
     logger.info("deleted latest cluster snapshot complete")
 
 
@@ -76,7 +76,8 @@ def get_latest_manual_cluster_snapshot() -> List[str] | None:
     try:
         db_cluster_snapshot_list = list()
         response = rds.describe_db_cluster_snapshots(SnapshotType='manual')
-        for i in response['DBSnapshots']:
+        print(response)
+        for i in response['DBClusterSnapshots']:
             db_cluster_snapshot_name = i['DBClusterSnapshotIdentifier']
             db_cluster_snapshot_list.append(db_cluster_snapshot_name)
         logger.info("getting db cluster complete")
@@ -104,24 +105,25 @@ def lambda_handler(event, context):
         db_snapshot_shared_list.append(db_shared_snapshot_name)
     for db_snapshot_shared_instance in db_snapshot_shared_list:
         target_snapshot = db_snapshot_shared_instance.split(":")[6]
-        copy_snapshot(db_snapshot_shared_instance, target_snapshot, kms_key_id)
+        print("regular snapshot: " + target_snapshot)
+    #    copy_snapshot(db_snapshot_shared_instance, target_snapshot, kms_key_id)
     db_snapshot_shared_list.clear()
 
     # get list of manual cluster snapshots and delete
     db_cluster_snapshot_list = get_latest_manual_cluster_snapshot()
     for db_cluster_snapshot in db_cluster_snapshot_list:
         delete_cluster_latest_snapshot(db_cluster_snapshot)
-
+        print(db_cluster_snapshot)
     # get a list of shared cluster snapshots and copy
     db_cluster_snapshot_shared_list = list()
-    cluster_response = rds.describe_db_snapshots(
+    cluster_response = rds.describe_db_cluster_snapshots(
         SnapshotType='shared',
         IncludeShared=True)
-    for i in cluster_response['DBSnapshots']:
+    for i in cluster_response['DBClusterSnapshots']:
         db_cluster_snapshot_shared_name = i['DBClusterSnapshotIdentifier']
         db_cluster_snapshot_shared_list.append(db_cluster_snapshot_shared_name)
     for db_snapshot_shared_cluster in db_cluster_snapshot_shared_list:
         target_cluster_snapshot = db_snapshot_shared_cluster.split(":")[6]
+        print("cluster snapshot: " + target_cluster_snapshot)
         copy_cluster_snapshot(db_snapshot_shared_cluster, target_cluster_snapshot, kms_key_id)
     db_cluster_snapshot_shared_list.clear()
-
