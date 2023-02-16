@@ -112,7 +112,7 @@ def lambda_handler(event, context):
     for db_cluster_snapshot in db_cluster_snapshot_list:
         delete_cluster_latest_snapshot(db_cluster_snapshot)
 
-    # get a list of shared snapshots and copy
+    # get a list of shared cluster snapshots and copy
     db_cluster_snapshot_shared_list = list()
     cluster_response = rds.describe_db_snapshots(
         SnapshotType='shared',
@@ -122,5 +122,6 @@ def lambda_handler(event, context):
         db_cluster_snapshot_shared_list.append(db_cluster_snapshot_shared_name)
     for db_snapshot_shared_cluster in db_cluster_snapshot_shared_list:
         target_cluster_snapshot = db_snapshot_shared_cluster.split(":")[6]
-        copy_snapshot(db_snapshot_shared_cluster, target_cluster_snapshot, kms_key_id)
+        copy_cluster_snapshot(db_snapshot_shared_cluster, target_cluster_snapshot, kms_key_id)
     db_cluster_snapshot_shared_list.clear()
+
